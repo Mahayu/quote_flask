@@ -3,6 +3,7 @@ import uuid
 import ocr_func
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy
 from flask_cors import CORS
 import base64
 from threading import Thread
@@ -15,14 +16,14 @@ CORS(app)
 user = 'root'
 password = 'Meina9758'
 database = 'quote'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://%s:%s@nj1.bridgecn.top:3306/%s' % (user, password, database)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://%s:%s@10.1.0.110:3306/%s' % (user, password, database)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
 
-class QuoteData(db.Model):
+class quoteImage(db.Model):
     quote_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     quote_desc = db.Column(db.String(255), nullable=False)
     quote_pic = db.Column(db.LargeBinary, nullable=False)
@@ -122,6 +123,7 @@ def image():
         return jsonify(result), 200
     except Exception as e:
         return jsonify({'error': 'An error occurred'}), 500
+
 
 if __name__ == '__main__':
     app.run()
