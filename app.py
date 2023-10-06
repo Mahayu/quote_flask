@@ -1,14 +1,8 @@
-import os
-import uuid
-import ocr_func
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 from flask_cors import CORS
 import base64
-from threading import Thread
-import concurrent.futures
-from flask import send_file, make_response
 
 app = Flask(__name__)
 
@@ -28,19 +22,6 @@ class quoteImage(db.Model):
     quote_desc = db.Column(db.String(255), nullable=False)
     quote_pic = db.Column(db.LargeBinary, nullable=False)
     quote_uuid = db.Column(db.String(255), nullable=False)
-
-
-'''
-class Cut(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    pic = db.Column(db.LargeBinary)
-    pic_cut = db.Column(db.LargeBinary)
-    pic_uuid = db.Column(db.String(255))
-
-    def __init__(self, pic, pic_uuid):
-        self.pic = pic
-        self.pic_uuid = pic_uuid
-'''
 
 
 # form-data, key = files , value = blob
@@ -67,8 +48,24 @@ def upload():
 # 根据UUID从中读取图片进行OCR
 @app.route('/quote_ocr', methods=['POST'])
 def ocr():
-    # TODO
-    return 0
+    try:
+        data = request.get_json()
+        if 'uuids' not in data:
+            return jsonify({'error': 'uuids field is required'}), 400
+
+        uuids = data['uuids']
+        if not uuids:
+            return jsonify({'message': 'No UUIDs provided'}), 400
+        ocr_pic = 0
+        for uuid0 in uuids:
+            record = quoteImage.query.filter_by(quote_uuid=uuid0).first()
+            ocr_pic += 1
+            if record:
+                # TODO (OCR函数处理图片)
+                return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error'}), 500
 
 
 # 根据UUID删除图片,test_delete.json
