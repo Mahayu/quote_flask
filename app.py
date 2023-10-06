@@ -61,6 +61,7 @@ def ocr():
             record = quoteImage.query.filter_by(quote_uuid=uuid0).first()
             ocr_pic += 1
             if record:
+                ocr_item = record.quote_pic
                 # TODO (OCR函数处理图片)
                 return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
     except sqlalchemy.exc.SQLAlchemyError as e:
