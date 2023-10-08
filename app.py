@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 from flask_cors import CORS
 import base64
+from ocr_func import ocr_multiple_file
 
 app = Flask(__name__)
 
@@ -57,13 +58,15 @@ def ocr():
         if not uuids:
             return jsonify({'message': 'No UUIDs provided'}), 400
         ocr_pic = 0
+        ocr_items = []
         for uuid0 in uuids:
             record = quoteImage.query.filter_by(quote_uuid=uuid0).first()
             ocr_pic += 1
             if record:
-                ocr_item = record.quote_pic
-                # TODO (OCR函数处理图片)
-                return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
+                ocr_items.append(record.quote_pic)
+        ocr = ocr_multiple_file(pic_list=ocr_items)
+        # TODO 修改多线程(返回为LIST没有问题，修改多线程异步后无法对应关系)
+        return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'error': 'Database error'}), 500
