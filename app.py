@@ -3,7 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 from flask_cors import CORS
 import base64
-from ocr_func import ocr_multiple_file
+from ocr_func import ocr_multiple_images
+import json
 
 app = Flask(__name__)
 
@@ -64,8 +65,10 @@ def ocr():
             ocr_pic += 1
             if record:
                 ocr_items.append(record.quote_pic)
-        ocr = ocr_multiple_file(ocr_items)
-        return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
+        ocr1 = ocr_multiple_images(ocr_items)
+        # return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
+        print(ocr1)
+        return 0
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'error': 'Database error'}), 500

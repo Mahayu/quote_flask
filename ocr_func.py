@@ -1,6 +1,9 @@
 import concurrent.futures
+import threading
+
 from paddleocr import PaddleOCR
 from io import BytesIO
+
 
 # def ocr_singlefile(pic):
 #     ocr = PaddleOCR(lang="ch")
@@ -26,16 +29,31 @@ def ocr_single_image(image_data):
     return quote_desc
 
 
-def ocr_multiple_file(image_data_list):
+def ocr_multiple_images(image_data_list):
     results = {}
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # 使用线程池并行处理图像数据
-        futures = {executor.submit(ocr_single_image, image_data): image_data for image_data in image_data_list}
-        for future in concurrent.futures.as_completed(futures):
-            image_data = futures[future]
-            try:
-                quote_desc = future.result()
-                results[image_data] = quote_desc
-            except Exception as e:
-                results[image_data] = str(e)  # 如果出现异常，将异常信息记录在结果中
+    threads = []
+    max_threads = 5  # 设置最大线程数为5
+
+    for image_data in image_data_list:
+        if len(threads) >= max_threads:
+            # 如果已经有最大线程数的线程在运行，等待一个线程结束
+            threads[0].join()
+            threads.pop(0)
+
+        thread = threading.Thread(target=process_image, args=(image_data, results))
+        thread.start()
+        threads.append(thread)
+
+    # 等待所有线程完成
+    for thread in threads:
+        thread.join()
+
     return results
+
+
+def process_image(image_data, results):
+    try:
+        quote_desc = ocr_single_image(image_data)
+        results[image_data] = quote_desc
+    except Exception as e:
+        results[image_data] = str(e)
