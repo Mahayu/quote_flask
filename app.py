@@ -64,8 +64,7 @@ def ocr():
             ocr_pic += 1
             if record:
                 ocr_items.append(record.quote_pic)
-        ocr = ocr_multiple_file(pic_list=ocr_items)
-        # TODO 修改多线程(返回为LIST没有问题，修改多线程异步后无法对应关系)
+        ocr = ocr_multiple_file(ocr_items)
         return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
