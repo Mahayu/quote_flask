@@ -21,19 +21,25 @@ from io import BytesIO
 #         results.append(quote_desc)
 #     return results
 
-def ocr_single_image(image_data):
-    ocr = PaddleOCR(lang="ch")
-    with BytesIO(image_data) as image_stream:
-        result = ocr.ocr(image_stream, cls=True)
-    quote_desc = result[-1][-1][0]
-    return quote_desc
+
+def process_image(image_data, results):
+    try:
+        image_byte = image_data[0]
+        uuid0 = image_data[1]
+
+        ocr = PaddleOCR(lang="ch")
+        with BytesIO(image_byte) as image_stream:
+            result = ocr.ocr(image_stream.getvalue(), cls=True)[-1][-1][0]
+            results[uuid0] = result
+    except Exception as e:
+        results[image_data] = str(e)
 
 
-def ocr_multiple_images(image_data_list):
+def ocr_multiple_images(ocr_items):
     results = {}
     threads = []
     max_threads = 5  # 设置最大线程数为5
-
+    image_data_list = ocr_items
     for image_data in image_data_list:
         if len(threads) >= max_threads:
             # 如果已经有最大线程数的线程在运行，等待一个线程结束
@@ -49,11 +55,3 @@ def ocr_multiple_images(image_data_list):
         thread.join()
 
     return results
-
-
-def process_image(image_data, results):
-    try:
-        quote_desc = ocr_single_image(image_data)
-        results[image_data] = quote_desc
-    except Exception as e:
-        results[image_data] = str(e)

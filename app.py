@@ -64,11 +64,14 @@ def ocr():
             record = quoteImage.query.filter_by(quote_uuid=uuid0).first()
             ocr_pic += 1
             if record:
-                ocr_items.append(record.quote_pic)
+                ocr_items.append([record.quote_pic, uuid0])
         ocr1 = ocr_multiple_images(ocr_items)
         # return jsonify({'message': f'{ocr_pic} pictures is processing'}), 200
-        print(ocr1)
-        return 0
+        for quote_uuid, quote_desc in ocr1.items():
+            record = quoteImage.query.filter_by(quote_uuid=quote_uuid).first()
+            record.quote_desc = quote_desc
+            db.session.commit()
+        return jsonify({'message': f'{ocr_pic} pictures Processed'}), 200
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'error': 'Database error'}), 500
