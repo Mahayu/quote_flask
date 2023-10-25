@@ -4,7 +4,6 @@ import sqlalchemy
 from flask_cors import CORS
 import base64
 from ocr_func import ocr_multiple_images
-import json
 
 app = Flask(__name__)
 
@@ -102,14 +101,29 @@ def delete_quote():
         return jsonify({'error': 'Database error'}), 500
 
 
-# 获取未处理记录(上传页面）
+# 获取未处理记录(上传页面,根据前端传来的分页返回数据）
 @app.route('/get_todo_image', methods=['GET'])
 def get_todo_image():
+    number = int(request.args.get('number', 1))
+    try:
+        start_index = (number - 1) * 10
+        end_index = start_index + 10
+        records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
+        result_slice = [{'pic': base64.b64encode(record.quote_pic).decode('utf8'), 'uuid': record.quote_uuid} for record
+                        in records_without_quote_desc[start_index:end_index]]
+
+        return jsonify(result_slice), 200
+    except Exception as e:
+        return jsonify({'error': 'An error occurred'}), 500
+
+
+# 获取未处理条目数，用于显示前端分页器
+@app.route('/get_todo_number', methods=['GET'])
+def get_todo_number():
     try:
         records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
-        result = [{'pic': base64.b64encode(record.quote_pic).decode('utf8'), 'uuid': record.quote_uuid} for record in
-                  records_without_quote_desc]
-        return jsonify(result), 200
+        result = len(records_without_quote_desc)
+        return result, 200
     except Exception as e:
         return jsonify({'error': 'An error occurred'}), 500
 
