@@ -23,6 +23,7 @@ class quoteImage(db.Model):
     quote_desc = db.Column(db.String(255), nullable=False)
     quote_pic = db.Column(db.LargeBinary, nullable=False)
     quote_uuid = db.Column(db.String(255), nullable=False)
+    upload_date = db.Column(db.Date, nullable=False)
 
 
 # form-data, key = files , value = blob
@@ -109,12 +110,20 @@ def get_todo_image():
         start_index = (number - 1) * 10
         end_index = start_index + 10
         records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
-        result_slice = [{'pic': base64.b64encode(record.quote_pic).decode('utf8'), 'uuid': record.quote_uuid} for record
-                        in records_without_quote_desc[start_index:end_index]]
+        result_slice = [
+            {
+                'pic': base64.b64encode(record.quote_pic).decode('utf8'),
+                'key': record.quote_uuid,
+                'date': record.upload_date  # Add the 'date' field here
+            }
+            for record in records_without_quote_desc[start_index:end_index]
+        ]
 
         return jsonify(result_slice), 200
     except Exception as e:
-        return jsonify({'error': 'An error occurred'}), 500
+        error_message = 'An error occurred: ' + str(e)
+        app.logger.error(error_message)  # Log the error message
+        return jsonify({'error': error_message}), 500
 
 
 # 获取未处理条目数，用于显示前端分页器
@@ -123,9 +132,9 @@ def get_todo_number():
     try:
         records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
         result = len(records_without_quote_desc)
-        return result, 200
+        return jsonify(result), 200
     except Exception as e:
-        return jsonify({'error': 'An error occurred'}), 500
+        return jsonify({'error': 'An error occurred'}, e), 500
 
 
 # 获取全部记录（修改页面）
@@ -136,9 +145,10 @@ def image():
         records = quoteImage.query.all()
         for record in records:
             result.append({
-                'quote_desc': record.quote_desc,
-                'quote_pic': base64.b64encode(record.quote_pic).decode('utf8'),  # 解决编码问题
-                'quote_uuid': record.quote_uuid  # 如果要返回quote_uuid字段，使用record.uuid
+                'desc': record.quote_desc,
+                'pic': base64.b64encode(record.quote_pic).decode('utf8'),
+                'key': record.quote_uuid,
+                'date': record.quote_date
             })
         return jsonify(result), 200
     except Exception as e:
