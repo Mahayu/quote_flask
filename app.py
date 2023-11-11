@@ -147,7 +147,7 @@ def get_todo_number():
 
 
 @app.route('/get_todo_page', methods=['GET'])
-def get_todo_number():
+def get_todo_page():
     try:
         records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
         result = len(records_without_quote_desc)
