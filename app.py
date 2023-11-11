@@ -4,6 +4,7 @@ import sqlalchemy
 from flask_cors import CORS
 import base64
 from ocr_func import ocr_multiple_images
+from typing import List, TypedDict
 
 app = Flask(__name__)
 
@@ -24,6 +25,14 @@ class quoteImage(db.Model):
     quote_pic = db.Column(db.LargeBinary, nullable=False)
     quote_uuid = db.Column(db.String(255), nullable=False)
     upload_date = db.Column(db.Date, nullable=False)
+
+
+class quoteImageTp(TypedDict):
+    quote_id: int
+    quote_desc: str
+    quote_pic: str
+    quote_uuid: str
+    upload_date: str
 
 
 # form-data, key = files , value = blob
