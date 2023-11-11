@@ -141,7 +141,11 @@ def get_todo_number():
     try:
         records_without_quote_desc = quoteImage.query.filter(quoteImage.quote_desc.is_(None)).all()
         result = len(records_without_quote_desc)
-        return jsonify(result), 200
+        if result % 10 != 0:
+            pages = result // 10 + 1
+        else:
+            pages = result // 10
+        return jsonify(pages), 200
     except Exception as e:
         return jsonify({'error': 'An error occurred'}, e), 500
 
